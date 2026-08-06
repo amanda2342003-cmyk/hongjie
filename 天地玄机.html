@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩《合数中特》细水长流！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+
+    let duLieuMap = {};
+
+    const TIAN_XUAN = ["01", "04", "07", "09", "10", "11", "14", "17", "19", "20", "21", "24", "27", "29", "30", "31", "34", "37", "39", "40", "41", "44", "47", "49"];
+    const DI_JI = ["02", "03", "05", "06", "08", "12", "13", "15", "16", "18", "22", "23", "25", "26", "28", "32", "33", "35", "36", "38", "42", "43", "45", "46", "48"];
+
+    const STATIC_PREDICTIONS = {
+        1: "地机", 2: "天玄", 3: "天玄", 4: "地机", 5: "地机", 6: "天玄", 7: "天玄", 8: "地机", 9: "地机", 10: "天玄",
+        11: "天玄", 12: "地机", 13: "天玄", 14: "天玄", 15: "地机", 16: "地机", 17: "天玄", 18: "地机", 19: "地机", 20: "天玄",
+        21: "地机", 22: "天玄", 23: "地机", 24: "天玄", 25: "地机", 26: "地机", 27: "天玄", 28: "地机", 29: "天玄", 30: "地机",
+        31: "地机", 32: "天玄", 33: "天玄", 34: "地机", 35: "天玄", 36: "天玄", 37: "地机", 38: "地机", 39: "天玄", 40: "地机",
+        41: "地机", 42: "天玄", 43: "天玄", 44: "地机", 45: "地机", 46: "天玄", 47: "天玄", 48: "地机", 49: "天玄", 50: "地机",
+        51: "天玄", 52: "地机", 53: "地机", 54: "天玄", 55: "地机", 56: "地机", 57: "天玄", 58: "天玄", 59: "地机", 60: "天玄",
+        61: "天玄", 62: "地机", 63: "地机", 64: "天玄", 65: "地机", 66: "地机", 67: "天玄", 68: "天玄", 69: "地机", 70: "天玄",
+        71: "地机", 72: "地机", 73: "天玄", 74: "地机", 75: "天玄", 76: "天玄", 77: "地机", 78: "天玄", 79: "天玄", 80: "地机",
+        81: "天玄", 82: "地机", 83: "天玄", 84: "地机", 85: "天玄", 86: "天玄", 87: "地机", 88: "天玄", 89: "天玄", 90: "地机",
+        91: "天玄", 92: "地机", 93: "天玄", 94: "天玄", 95: "地机", 96: "天玄", 97: "地机", 98: "天玄", 99: "地机", 100: "天玄",
+        101: "地机", 102: "地机", 103: "天玄", 104: "天玄", 105: "地机", 106: "地机", 107: "天玄", 108: "天玄", 109: "地机", 110: "地机",
+        111: "天玄", 112: "天玄", 113: "地机", 114: "天玄", 115: "天玄", 116: "地机", 117: "地机", 118: "天玄", 119: "天玄", 120: "地机",
+        121: "地机", 122: "天玄", 123: "地机", 124: "地机", 125: "天玄", 126: "地机", 127: "地机", 128: "天玄", 129: "天玄", 130: "地机",
+        131: "天玄", 132: "天玄", 133: "地机", 134: "地机", 135: "天玄", 136: "地机", 137: "地机", 138: "天玄", 139: "地机", 140: "天玄",
+        141: "天玄", 142: "地机", 143: "天玄", 144: "天玄", 145: "地机", 146: "天玄", 147: "地机", 148: "天玄", 149: "地机", 150: "地机",
+        151: "天玄", 152: "地机", 153: "天玄", 154: "地机", 155: "天玄", 156: "天玄", 157: "地机", 158: "天玄", 159: "天玄", 160: "地机",
+        161: "天玄", 162: "地机", 163: "地机", 164: "天玄", 165: "天玄", 166: "地机", 167: "地机", 168: "天玄", 169: "天玄", 170: "地机",
+        171: "天玄", 172: "天玄", 173: "地机", 174: "天玄", 175: "地机", 176: "天玄", 177: "天玄", 178: "地机", 179: "天玄", 180: "天玄",
+        181: "地机", 182: "天玄", 183: "天玄", 184: "地机", 185: "天玄", 186: "地机", 187: "天玄", 188: "天玄", 189: "地机", 190: "地机",
+        191: "天玄", 192: "地机", 193: "地机", 194: "天玄", 195: "天玄", 196: "地机", 197: "天玄", 198: "地机", 199: "地机", 200: "天玄",
+        201: "地机", 202: "天玄", 203: "地机", 204: "地机", 205: "天玄", 206: "天玄", 207: "地机", 208: "地机", 209: "天玄", 210: "地机",
+        211: "天玄", 212: "天玄", 213: "地机", 214: "天玄", 215: "地机", 216: "地机", 217: "天玄", 218: "地机", 219: "天玄", 220: "地机",
+        221: "地机", 222: "天玄", 223: "地机", 224: "地机", 225: "天玄", 226: "天玄", 227: "地机", 228: "地机", 229: "天玄", 230: "地机",
+        231: "天玄", 232: "天玄", 233: "地机", 234: "地机", 235: "天玄", 236: "天玄", 237: "地机", 238: "天玄", 239: "天玄", 240: "地机",
+        241: "地机", 242: "天玄", 243: "天玄", 244: "地机", 245: "地机", 246: "天玄", 247: "天玄", 248: "地机", 249: "天玄", 250: "地机",
+        251: "天玄", 252: "地机", 253: "天玄", 254: "地机", 255: "天玄", 256: "天玄", 257: "地机", 258: "地机", 259: "天玄", 260: "天玄",
+        261: "地机", 262: "天玄", 263: "地机", 264: "天玄", 265: "天玄", 266: "地机", 267: "天玄", 268: "天玄", 269: "地机", 270: "地机",
+        271: "天玄", 272: "天玄", 273: "地机", 274: "天玄", 275: "地机", 276: "地机", 277: "天玄", 278: "地机", 279: "天玄", 280: "天玄",
+        281: "地机", 282: "天玄", 283: "天玄", 284: "地机", 285: "地机", 286: "天玄", 287: "地机", 288: "天玄", 289: "地机", 290: "天玄",
+        291: "天玄", 292: "地机", 293: "天玄", 294: "地机", 295: "天玄", 296: "地机", 297: "天玄", 298: "地机", 299: "地机", 300: "天玄",
+        301: "地机", 302: "地机", 303: "天玄", 304: "天玄", 305: "地机", 306: "地机", 307: "天玄", 308: "地机", 309: "地机", 310: "天玄",
+        311: "地机", 312: "地机", 313: "天玄", 314: "地机", 315: "天玄", 316: "天玄", 317: "地机", 318: "地机", 319: "天玄", 320: "地机",
+        321: "地机", 322: "天玄", 323: "天玄", 324: "地机", 325: "地机", 326: "天玄", 327: "地机", 328: "地机", 329: "天玄", 330: "天玄",
+        331: "地机", 332: "地机", 333: "天玄", 334: "地机", 335: "地机", 336: "天玄", 337: "天玄", 338: "地机", 339: "天玄", 340: "天玄",
+        341: "地机", 342: "地机", 343: "天玄", 344: "地机", 345: "地机", 346: "天玄", 347: "天玄", 348: "地机", 349: "地机", 350: "天玄",
+        351: "地机", 352: "天玄", 353: "天玄", 354: "地机", 355: "地机", 356: "天玄", 357: "天玄", 358: "地机", 359: "天玄", 360: "天玄",
+        361: "地机", 362: "天玄", 363: "地机", 364: "天玄", 365: "地机"
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictDanShuangForKy(kyNum) {
+        if (STATIC_PREDICTIONS[kyNum]) {
+            return STATIC_PREDICTIONS[kyNum];
+        }
+        let cycle = Math.floor((kyNum - 1) / 2);
+        return cycle % 2 === 0 ? "天玄" : "地机";
+    }
+
+    function getDanShuangByNum(numStr) {
+        if (TIAN_XUAN.includes(numStr)) return "天玄";
+        if (DI_JI.includes(numStr)) return "地机";
+        return "";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+            let maxKyNum = 0;
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                        if (kyOnlyNum > maxKyNum) {
+                            maxKyNum = kyOnlyNum;
+                        }
+                    }
+                }
+            }
+
+            let doneList = [];
+            let limitRange = Math.min(parsedList.length, 365);
+            let startIndex = parsedList.length - limitRange;
+
+            for (let i = startIndex; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+                if (isDone) {
+                    doneList.push(item);
+                }
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictDanShuangForKy(item.kyNum);
+                let actual = getDanShuangByNum(item.numTe);
+                let isValidNum = (TIAN_XUAN.includes(item.numTe) || DI_JI.includes(item.numTe));
+                let isWin = isValidNum && actual && (predicted === actual);
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            let checkLatestMisses = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestMisses++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = evaluatedDoneList.length;
+            if (checkLatestMisses < 3) {
+                let consecutiveMisses = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveMisses = 0;
+                    }
+                }
+            }
+
+            let nextKyNum = maxKyNum + 1;
+            let predictNext = getPredictDanShuangForKy(nextKyNum);
+            let kyStrNext = String(nextKyNum).padStart(3, '0');
+
+            let htmlNextKy = `<p style="color:#0000CC;margin:0px;padding:0px;white-space:normal;"><span style="color:#000000;">${kyStrNext}期:【天玄地机】** [</span><span style="color:#0000CC;">${predictNext}</span><span style="color:#000000;">]&nbsp;开:</span><span style="color:#FF0000;">？00</span><span style="color:#000000;">准</span>&nbsp;</p>`;
+
+            let historyOutputs = [];
+            if (checkLatestMisses < 3) {
+                for (let i = cutoffIndex; i < doneList.length; i++) {
+                    let item = doneList[i];
+                    let predicted = getPredictDanShuangForKy(item.kyNum);
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
+                    let actual = getDanShuangByNum(item.numTe);
+                    let isValidNum = (TIAN_XUAN.includes(item.numTe) || DI_JI.includes(item.numTe));
+                    let isWin = isValidNum && actual && (predicted === actual);
+
+                    if (isWin) {
+                        let resStrWin = shengXiaoWin + item.numTe + '准';
+                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        let formattedPredictHtml = `<span style="color:#FF0000; background-color:yellow;">${predicted}</span>`;
+                        historyOutputs.push(`<p style="color:#0000CC;margin:0px;padding:0px;white-space:normal;"><span style="color:#000000;">${kyStr}期:【天玄地机】** [</span>${formattedPredictHtml}<span style="color:#000000;">]&nbsp;开:</span><span style="color:#FF0000;">${resStrWin}</span>&nbsp;</p>`);
+                    }
+                }
+            }
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
+                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let defaultHtml1 = `<p style="color:#0000CC;margin:0px;padding:0px;white-space:normal;"><span style="color:#000000;">${kyStr1}期:【天玄地机】** [</span><span style="color:#FF0000;">發發</span><span style="color:#000000;">]&nbsp;开:</span><span style="color:#FF0000;">？00</span><span style="color:#000000;">准</span>&nbsp;</p>`;
+                let defaultHtml2 = `<p style="color:#0000CC;margin:0px;padding:0px;white-space:normal;"><span style="color:#000000;">${kyStr2}期:【天玄地机】** [</span><span style="color:#FF0000;">發發</span><span style="color:#000000;">]&nbsp;开:</span><span style="color:#FF0000;">？00</span><span style="color:#000000;">准</span>&nbsp;</p>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let defaultHtmlExtra = `<p style="color:#0000CC;margin:0px;padding:0px;white-space:normal;"><span style="color:#000000;">${kyStrExtra}期:【天玄地机】** [</span><span style="color:#FF0000;">發發</span><span style="color:#000000;">]&nbsp;开:</span><span style="color:#FF0000;">？00</span><span style="color:#000000;">准</span>&nbsp;</p>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
