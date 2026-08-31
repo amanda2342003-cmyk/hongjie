@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩【绝杀二肖】精准猛料！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+
+    let duLieuMap = {};
+
+    const ALL_XIAO = ["鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"];
+
+    // Bảng dữ liệu dự đoán tĩnh (2 con giáp tuyệt sát ví dụ cho các kỳ)
+    const STATIC_PREDICTIONS = {
+        1: "牛羊", 2: "鼠马", 3: "虎猴", 4: "兔鸡", 5: "龙狗", 6: "蛇猪", 7: "鼠兔", 8: "牛龙", 9: "虎蛇", 10: "马羊"
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error("Invalid response");
+            });
+    }
+
+    // Lấy dự đoán 2 con giáp cho các kỳ
+    function getPredictForKy(kyNum) {
+        let actualKy = ((kyNum - 1) % 366) + 1;
+        if (STATIC_PREDICTIONS[actualKy]) {
+            return STATIC_PREDICTIONS[actualKy];
+        }
+        let idx1 = (actualKy * 3) % 12;
+        let idx2 = (actualKy * 7 + 5) % 12;
+        if (idx1 === idx2) idx2 = (idx2 + 1) % 12;
+        return ALL_XIAO[idx1] + ALL_XIAO[idx2];
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    // Phân tích chuỗi 2 con giáp (ví dụ: "牛羊" -> ["牛", "羊"])
+    function parsePredictXiao(predictStr) {
+        let chars = Array.from(predictStr);
+        if (chars.length >= 2) {
+            return [chars[0], chars[1]];
+        }
+        return ["牛", "羊"];
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined) {
+                        let valStr = String(r[7].v).trim();
+                        if (valStr !== '' && valStr !== '0' && valStr !== '00') {
+                            numTeFormatted = formatTwoDigits(r[7].v);
+                        }
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                    }
+                }
+            }
+
+            let doneList = [];
+            let pendingKyObj = null;
+
+            for (let i = 0; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isDone = item.numTe !== '';
+                if (isDone) {
+                    doneList.push(item);
+                } else {
+                    pendingKyObj = item;
+                }
+            }
+
+            let targetPredictKy = 1;
+            if (pendingKyObj) {
+                targetPredictKy = pendingKyObj.kyNum;
+            } else if (doneList.length > 0) {
+                targetPredictKy = doneList[doneList.length - 1].kyNum + 1;
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predictedStr = getPredictForKy(item.kyNum);
+                let actualNum = parseInt(item.numTe, 10);
+                
+                let isValidRange = !isNaN(actualNum) && actualNum >= 1 && actualNum <= 49;
+                let actualAnimal = duLieuMap[item.numTe] || '';
+                let killAnimals = parsePredictXiao(predictedStr);
+
+                // Trúng khi số mở thưởng nằm trong khoảng 01-49 và con giáp mở thưởng KHÔNG thuộc danh sách 2 con giáp bị tuyệt sát
+                let isWin = isValidRange && !killAnimals.includes(actualAnimal);
+
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            let checkLatestDeletes = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestDeletes++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = 0;
+            if (checkLatestDeletes >= 3) {
+                cutoffIndex = evaluatedDoneList.length;
+            } else {
+                let consecutiveDeletes = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveDeletes++;
+                        if (consecutiveDeletes >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveDeletes = 0;
+                    }
+                }
+            }
+
+            // Kỳ dự đoán chính (chưa mở thưởng)
+            let nextKyNum = targetPredictKy;
+            let predictNext = getPredictForKy(nextKyNum);
+            let kyStrNext = String(nextKyNum).padStart(3, '0');
+
+            // Định dạng HTML chuẩn giữ nguyên cấu trúc mẫu của bạn
+            let htmlNextKy = `<p style="margin:0px;font-weight:bold;">${kyStrNext}期：(绝杀二肖)✺【<span style="color:#FF0000;">${predictNext}</span>】开:<span style="color:#FF0000;">？00</span>准</p>`;
+
+            let historyOutputs = [];
+            if (checkLatestDeletes < 3) {
+                for (let i = cutoffIndex; i < doneList.length; i++) {
+                    let item = doneList[i];
+                    let evaluated = evaluatedDoneList.find(e => e.item.kyNum === item.kyNum);
+                    if (evaluated && evaluated.isWin) {
+                        let predicted = getPredictForKy(item.kyNum);
+                        let shengXiaoWin = duLieuMap[item.numTe] || '';
+                        let resStrWin = shengXiaoWin + item.numTe;
+                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        
+                        historyOutputs.push(`<p style="margin:0px;font-weight:bold;">${kyStr}期：(绝杀二肖)✺【<span style="color:#FF0000;">${predicted}</span>】开:<span style="color:#FF0000;">${resStrWin}</span>准</p>`);
+                    }
+                }
+            }
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            // Nếu lịch sử bị xóa do thua 3 kỳ liên tiếp, bổ sung các kỳ mặc định chứa 發發
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
+                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let defaultHtml1 = `<p style="margin:0px;font-weight:bold;">${kyStr1}期：(绝杀二肖)✺【<span style="color:#FF0000;">發發</span>】开:<span style="color:#FF0000;">？00</span>准</p>`;
+                let defaultHtml2 = `<p style="margin:0px;font-weight:bold;">${kyStr2}期：(绝杀二肖)✺【<span style="color:#FF0000;">發發</span>】开:<span style="color:#FF0000;">？00</span>准</p>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let defaultHtmlExtra = `<p style="margin:0px;font-weight:bold;">${kyStrExtra}期：(绝杀二肖)✺【<span style="color:#FF0000;">發發</span>】开:<span style="color:#FF0000;">？00</span>准</p>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
